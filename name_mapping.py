@@ -34,11 +34,17 @@ TYPE_HANDLERS = {
                    "Data Control action: (?P<action>.+?) {2}"
                    "File type: (?P<file_type>.+?) {2}File size: (?P<file_size>\\d+?) {2}"
                    "Source path: (?P<file_path>.+)$"),
-    "Event::Endpoint::DataLossPreventionAutomaticallyBlocked":
+    "Event::Endpoint::DataLossPreventionAutomaticallyBlocked::Application":
         re.compile("A \″(?P<name>.+)\″.+ Username: (?P<user>.+?) {2}Rule names: \′(?P<rule>.+?)\′ {2}"
                    "User action: (?P<user_action>.+?) {2}Application Name: (?P<app_name>.+?) {2}"
                    "Data Control action: (?P<action>.+?) {2}File type: (?P<file_type>.+?) {2}"
                    "File size: (?P<file_size>\d+?) {2}Source path: (?P<file_path>.+)$"),
+    "Event::Endpoint::DataLossPreventionAutomaticallyBlocked::Storage":
+        re.compile("A \″(?P<name>.+)\″.+ Username: (?P<user>.+?) {2}Rule names: \′(?P<rule>.+?)\′ {2}"
+                   "User action: (?P<user_action>.+?) {2}Data Control action: (?P<action>.+?) {2}
+                   "File type: (?P<file_type>.+?) {2}File size: (?P<file_size>\d+?) {2}"
+                   "Source path: (?P<file_path>.+?) {2}Destination path: (?P<destination_path>.+?) {2}"
+                   "Destination type: (?P<destination_type>.+)$"),
     "Event::Endpoint::NonCompliant": None,    # None == ignore the event
     "Event::Endpoint::Compliant": None,
     "Event::Endpoint::Device::AlertedOnly": None,
@@ -59,6 +65,12 @@ def update_fields(log, data):
 
     if u'description' in data.keys():
         data[u'name'] = data[u'description']
+
+    if data[u'type'] in 'Event::Endpoint::DataLossPreventionAutomaticallyBlocked':
+        if data[u'name'] in 'Application name':
+            data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlocked::Application"
+        if data[u'name'] in 'Destination type':
+            data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlocked::Storage"
 
     if data[u'type'] in TYPE_HANDLERS:
         prog_regex = TYPE_HANDLERS[data[u'type']]
