@@ -34,7 +34,11 @@ TYPE_HANDLERS = {
                    "Data Control action: (?P<action>.+?) {2}"
                    "File type: (?P<file_type>.+?) {2}File size: (?P<file_size>\\d+?) {2}"
                    "Source path: (?P<file_path>.+)$"),
-
+    "Event::Endpoint::DataLossPreventionAutomaticallyBlocked":
+        re.compile("A \″(?P<name>.+)\″.+ Username: (?P<user>.+?) {2}Rule names: \′(?P<rule>.+?)\′ {2}"
+                   "User action: (?P<user_action>.+?) {2}Application Name: (?P<app_name>.+?) {2}"
+                   "Data Control action: (?P<action>.+?) {2}File type: (?P<file_type>.+?) {2}"
+                   "File size: (?P<file_size>\d+?) {2}Source path: (?P<file_path>.+)$"),
     "Event::Endpoint::NonCompliant": None,    # None == ignore the event
     "Event::Endpoint::Compliant": None,
     "Event::Endpoint::Device::AlertedOnly": None,
