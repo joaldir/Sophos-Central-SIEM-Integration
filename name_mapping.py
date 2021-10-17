@@ -34,13 +34,23 @@ TYPE_HANDLERS = {
                    "Data Control action: (?P<action>.+?) {2}"
                    "File type: (?P<file_type>.+?) {2}File size: (?P<file_size>\\d+?) {2}"
                    "Source path: (?P<file_path>.+)$"),
-    "Event::Endpoint::DataLossPreventionAutomaticallyBlocked::Application":
-        re.compile("A \″(?P<name>.+)\″.+ Username: (?P<user>.+?) {2}Rule names: \′(?P<rule>.+?)\′ {2}"
+
+    "Event::Endpoint::DataLossPreventionAutomaticallyBlockedApplication":
+        re.compile(u"A \u2033(?P<name>.+)\u2033.+ Username: (?P<user>.+?) {2}"
+                   u"Rule names: \u2032(?P<rule>.+?)\u2032 {2}"
                    "User action: (?P<user_action>.+?) {2}Application Name: (?P<app_name>.+?) {2}"
-                   "Data Control action: (?P<action>.+?) {2}File type: (?P<file_type>.+?) {2}"
-                   "File size: (?P<file_size>\d+?) {2}Source path: (?P<file_path>.+)$"),
-    "Event::Endpoint::DataLossPreventionAutomaticallyBlocked::Storage":
-        re.compile("A \″(?P<name>.+)\″.+ Username: (?P<user>.+?) {2}Rule names: \′(?P<rule>.+?)\′ {2}User action: (?P<user_action>.+?) {2}Data Control action: (?P<action>.+?) {2}File type: (?P<file_type>.+?) {2}File size: (?P<file_size>\d+?) {2}Source path: (?P<file_path>.+?) {2}Destination path: (?P<destination_path>.+?) {2}Destination type: (?P<destination_type>.+)$"),
+                   "Data Control action: (?P<action>.+?) {2}"
+                   "File type: (?P<file_type>.+?) {2}File size: (?P<file_size>\\d+?) {2}"
+                   "Source path: (?P<file_path>.+)$"),
+
+    "Event::Endpoint::DataLossPreventionAutomaticallyBlockedStorage":
+        re.compile(u"A \u2033(?P<name>.+)\u2033.+ Username: (?P<user>.+?) {2}"
+                   u"Rule names: \u2032(?P<rule>.+?)\u2032 {2}"
+                   "User action: (?P<user_action>.+?) {2}"
+                   "Data Control action: (?P<action>.+?) {2}"
+                   "File type: (?P<file_type>.+?) {2}File size: (?P<file_size>\\d+?) {2}"
+                   "Source path: (?P<file_path>.+) {2}Destination path: (?P<destination_path>.+?) {2}Destination type: (?P<destination_type>.+)$"),
+
     "Event::Endpoint::NonCompliant": None,    # None == ignore the event
     "Event::Endpoint::Compliant": None,
     "Event::Endpoint::Device::AlertedOnly": None,
@@ -62,11 +72,11 @@ def update_fields(log, data):
     if u'description' in data.keys():
         data[u'name'] = data[u'description']
 
-    if data[u'type'] in 'Event::Endpoint::DataLossPreventionAutomaticallyBlocked':
-        if data[u'name'] in 'Application name':
-            data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlocked::Application"
-        if data[u'name'] in 'Destination type':
-            data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlocked::Storage"
+    if 'Application Name' in data[u'name']:
+        data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlockedApplication"
+
+    if 'Destination type' in data[u'name']:
+        data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlockedStorage"
 
     if data[u'type'] in TYPE_HANDLERS:
         prog_regex = TYPE_HANDLERS[data[u'type']]
