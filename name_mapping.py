@@ -50,7 +50,7 @@ TYPE_HANDLERS = {
                    "Data Control action: (?P<action>.+?) {2}"
                    "File type: (?P<file_type>.+?) {2}File size: (?P<file_size>\\d+?) {2}"
                    "Source path: (?P<file_path>.+) {2}Destination path: (?P<destination_path>.+?) {2}Destination type: (?P<destination_type>.+)$"),
-
+    "Event::Endpoint::DataLossPreventionAutomaticallyBlocked": None,
     "Event::Endpoint::NonCompliant": None,    # None == ignore the event
     "Event::Endpoint::Compliant": None,
     "Event::Endpoint::Device::AlertedOnly": None,
@@ -58,7 +58,11 @@ TYPE_HANDLERS = {
     "Event::Endpoint::SavScanComplete": None,
     "Event::Endpoint::Application::Allowed": None,
     "Event::Endpoint::UpdateSuccess": None,
+    "Event::Endpoint::WebControlViolationBlockCategory": 
+            re.compile("(\'(?P<url>.+?)\' {1}(?P<action>.+?) {1}.+\'(?P<category>.+?)\')$"),
     "Event::Endpoint::WebControlViolation": None,
+    "Event::Endpoint::WebFilteringBlockedMalware":
+            re.compile("Access was {1}(?P<action>.+?) {1}to {1}\"(?P<url>.+?)\" because of \"(?P<malware>.+?)\""),
     "Event::Endpoint::WebFilteringBlocked": None,
 }
 
@@ -72,11 +76,21 @@ def update_fields(log, data):
     if u'description' in data.keys():
         data[u'name'] = data[u'description']
 
-    if 'Application Name' in data[u'name']:
-        data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlockedApplication"
+    if 'Event::Endpoint::DataLossPreventionAutomaticallyBlocked' in data[u'type']:
+        if 'Application Name' in data[u'name']:
+            data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlockedApplication"
 
-    if 'Destination type' in data[u'name']:
-        data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlockedStorage"
+        if 'Destination type' in data[u'name']:
+            data[u'type'] = "Event::Endpoint::DataLossPreventionAutomaticallyBlockedStorage"
+
+    if 'Event::Endpoint::WebControlViolation' in data[u'type']:
+        if 'blocked due to category' in data[u'name']:
+            data[u'type'] = "Event::Endpoint::WebControlViolationBlockCategory"
+
+    if 'Event::Endpoint::WebFilteringBlocked' in data[u'type']:
+        if 'Access was blocked to' in data[u'name']:
+            data[u'type'] = "Event::Endpoint::WebFilteringBlockedMalware"
+
 
     if data[u'type'] in TYPE_HANDLERS:
         prog_regex = TYPE_HANDLERS[data[u'type']]
@@ -84,6 +98,7 @@ def update_fields(log, data):
             return
         result = prog_regex.search(data[u'name'])
         if not result:
+            print(data[u'name'])
             log("Failed to split name field for event type %r" % data[u'type'])
             return
 
